@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.7)
 
 #-----------------------------------------------------------------------------
 set(MODULE_NAME VirtualRealityViewer)
-set(MODULE_TITLE "Virtual Reality Viewer")
+set(MODULE_TITLE "${MODULE_NAME}")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 

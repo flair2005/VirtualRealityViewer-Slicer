@@ -5,16 +5,21 @@ set(KIT ${PROJECT_NAME})
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_LOGIC_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
-  ${OculusInclude_DIR}
+
   )
 
 set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}Logic.cxx
   vtkSlicer${MODULE_NAME}Logic.h
   )
+  
+set(${KIT}_HDRS  
+  Cube2Cyl.hpp
+  cube_to_cyl.h  
+  )
 
 set(${KIT}_TARGET_LIBRARIES
-  ${OculusLib}
+
   )
 
 #-----------------------------------------------------------------------------

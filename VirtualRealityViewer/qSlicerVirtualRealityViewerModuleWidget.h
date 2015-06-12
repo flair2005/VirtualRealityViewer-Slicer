@@ -22,46 +22,20 @@
 #include "qSlicerAbstractModuleWidget.h"
 #include "qSlicerVirtualRealityViewerModuleExport.h"
 
-// Qt includes
-#include <qtimer.h>
-
-#include <vtkMRMLCameraNode.h>
-#include <vtkCamera.h>
-#include <qMRMLThreeDWidget.h>
-#include <vtkPerspectiveTransform.h>
-#include <vtkPolyData.h>
-#include <vtkSmartPointer.h>
-#include "vtkImageData.h"
-#include "vtkImageActor.h"
-#include "vtkRenderer.h"
-#include "vtkActor.h"
-#include "vtkImageActor.h"
-#include "vtkCamera.h"
-
-// Slicer includes
-#include <vtkMRMLSliceLogic.h>
-
 // MRML includes
-#include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLScalarVolumeDisplayNode.h>
-#include <vtkMRMLVolumeArchetypeStorageNode.h>
-#include <vtkMRMLScene.h>
-#include <vtkMRMLSliceCompositeNode.h>
-#include <vtkMRMLSliceNode.h>
-#include <vtkMRMLColorTableNode.h>
 
 // VTK includes
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
-#include <vtkImageMapper.h>
-#include <vtkProperty2D.h>
-#include <vtkActor2D.h>
+#include <vtkMRMLCameraNode.h>
+#include <vtkCamera.h>
+#include <qMRMLThreeDWidget.h>
+#include <vtkSmartPointer.h>
+#include "vtkRenderer.h"
+#include "vtkCamera.h"
 
 class qSlicerVirtualRealityViewerModuleWidgetPrivate;
 class vtkMRMLNode;
-class QTimer;
-class vtkSlicerViewerWidget;
-class vtkMRMLSliceLogic;
 
 /// \ingroup Slicer_QtModules_ExtensionTemplate
 class Q_SLICER_QTMODULES_VIRTUALREALITYVIEWER_EXPORT qSlicerVirtualRealityViewerModuleWidget :
@@ -74,20 +48,16 @@ public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerVirtualRealityViewerModuleWidget(QWidget *parent=0);
   virtual ~qSlicerVirtualRealityViewerModuleWidget();
-  
-  virtual void enter();
 
-public slots:
-  void onStart();
-  
-protected:
-
-  //qMRMLThreeDWidget* riftWindow;
-  
 protected:
   QScopedPointer<qSlicerVirtualRealityViewerModuleWidgetPrivate> d_ptr;
   
   virtual void setup();
+  virtual void enter();
+
+  
+protected slots:
+  void onStart();
 
 
 private:

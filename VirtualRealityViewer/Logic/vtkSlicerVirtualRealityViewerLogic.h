@@ -48,6 +48,8 @@ public:
   vtkTypeMacro(vtkSlicerVirtualRealityViewerLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
+  void CreateImage(vtkRenderer*, vtkRenderWindow*);
+  unsigned char* CubemapToEquirectangular(unsigned char* cube[]);
 
 protected:
   vtkSlicerVirtualRealityViewerLogic();
@@ -55,7 +57,6 @@ protected:
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  
   
 private:
 
