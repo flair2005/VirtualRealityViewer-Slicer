@@ -19,7 +19,7 @@ set(${KIT}_HDRS
   )
 
 set(${KIT}_TARGET_LIBRARIES
-
+  vtkSlicerMarkupsModuleMRML
   )
 
 #-----------------------------------------------------------------------------

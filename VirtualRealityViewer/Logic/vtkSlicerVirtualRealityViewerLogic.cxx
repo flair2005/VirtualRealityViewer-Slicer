@@ -1,4 +1,4 @@
-/*==============================================================================
+       /*==============================================================================
 
   Program: 3D Slicer
 
@@ -24,6 +24,7 @@
 #include <qMRMLThreeDView.h>
 #include <qMRMLThreeDWidget.h>
 #include "vtkMRMLCameraNode.h"
+#include <vtkMRMLMarkupsFiducialNode.h>
 
 #include <qSlicerApplication.h>
 #include "qSlicerLayoutManager.h"
@@ -60,78 +61,121 @@ vtkSlicerVirtualRealityViewerLogic::~vtkSlicerVirtualRealityViewerLogic()
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerVirtualRealityViewerLogic::CreateImage(vtkRenderer* renderer, vtkRenderWindow* renderWindow)
+void vtkSlicerVirtualRealityViewerLogic::CreateImage(vtkRenderer* renderer, vtkRenderWindow* renderWindow, vtkMRMLMarkupsFiducialNode* fiducialNode)
 {
   vtkCamera* camera = renderer->GetActiveCamera();
+  
+  //fiducialNode->GetNumberOfFiducials();
+  double xyzf[3];
+  fiducialNode->GetNthFiducialPosition(0, xyzf);
 
-  camera->SetPosition(0, 0, 0);
-  camera->SetFocalPoint(0, 0.1, 0);
+  camera->SetPosition(xyzf[0], xyzf[1], xyzf[2]);
+  camera->SetFocalPoint(xyzf[0], xyzf[1] + 0.1, xyzf[2]);
   camera->SetViewUp(0, 0, 1);
   camera->UseHorizontalViewAngleOn();
   camera->SetViewAngle(90);
   camera->SetClippingRange(0.3, 500);
 
 	//42 4D 4C 00 00 00 00 00 00 00 1A 00 00 00 0C 00 00 00 C0 03 C0 03 01 00 18 00
-
+  renderWindow->StereoRenderOn();
   int *size = renderWindow->GetSize();
-  cout << size[0] << " " << size[1] << endl;
-
-  /*
-  FILE *binFile = fopen("C:/W/Image1","wb");
-  fwrite(image, sizeof(unsigned char), 3*size[0]*size[1], binFile);
-  fclose(binFile);
-  */
 
   // Front
+  renderWindow->SetStereoTypeToLeft();
   renderWindow->Render();
-  unsigned char* imageA = new unsigned char [3*size[0]*size[1]];
-  imageA = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+  unsigned char* imageA_L = new unsigned char [3*size[0]*size[1]];
+  imageA_L = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+
+  renderWindow->SetStereoTypeToRight();
+  renderWindow->Render();
+  unsigned char* imageA_R = new unsigned char [3*size[0]*size[1]];
+  imageA_R = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
 
   // Left
   camera->Yaw(90);
+  renderWindow->SetStereoTypeToLeft();
   renderWindow->Render();
-  unsigned char* imageL = new unsigned char [3*size[0]*size[1]];
-  imageL = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+  unsigned char* imageL_L = new unsigned char [3*size[0]*size[1]];
+  imageL_L = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+
+  renderWindow->SetStereoTypeToRight();
+  renderWindow->Render();
+  unsigned char* imageL_R = new unsigned char [3*size[0]*size[1]];
+  imageL_R = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
 
   // Back
   camera->Yaw(90);
+  renderWindow->SetStereoTypeToLeft();
   renderWindow->Render();
-  unsigned char* imageP = new unsigned char [3*size[0]*size[1]];
-  imageP = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+  unsigned char* imageP_L = new unsigned char [3*size[0]*size[1]];
+  imageP_L = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+
+  renderWindow->SetStereoTypeToRight();
+  renderWindow->Render();
+  unsigned char* imageP_R = new unsigned char [3*size[0]*size[1]];
+  imageP_R = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
 
   // Right
   camera->Yaw(90);
+  renderWindow->SetStereoTypeToLeft();
   renderWindow->Render();
-  unsigned char* imageR = new unsigned char [3*size[0]*size[1]];
-  imageR = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+  unsigned char* imageR_L = new unsigned char [3*size[0]*size[1]];
+  imageR_L = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+
+  renderWindow->SetStereoTypeToRight();
+  renderWindow->Render();
+  unsigned char* imageR_R = new unsigned char [3*size[0]*size[1]];
+  imageR_R = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
 
   // Top
   camera->Yaw(90);
   camera->SetViewUp(1,0,0);
   camera->Yaw(90);
+  renderWindow->SetStereoTypeToLeft();
   renderWindow->Render();
-  unsigned char* imageS = new unsigned char [3*size[0]*size[1]];
-  imageS = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+  unsigned char* imageS_L = new unsigned char [3*size[0]*size[1]];
+  imageS_L = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+
+  renderWindow->SetStereoTypeToRight();
+  renderWindow->Render();
+  unsigned char* imageS_R = new unsigned char [3*size[0]*size[1]];
+  imageS_R = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
 
   // Bottom
   camera->Yaw(180);
+  renderWindow->SetStereoTypeToLeft();
   renderWindow->Render();
-  unsigned char* imageI = new unsigned char [3*size[0]*size[1]];
-  imageI = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+  unsigned char* imageI_L = new unsigned char [3*size[0]*size[1]];
+  imageI_L = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
 
-  unsigned char* cube[6];
-  cube[0] = imageS; cube[1] = imageL; cube[2] = imageA; cube[3] = imageR; cube[4] = imageP; cube[5] = imageI;
+  renderWindow->SetStereoTypeToRight();
+  renderWindow->Render();
+  unsigned char* imageI_R = new unsigned char [3*size[0]*size[1]];
+  imageI_R = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+  
 
-  unsigned char* stitchedImage = this->CubemapToEquirectangular(cube);
+  unsigned char* cube_L[6];
+  cube_L[0] = imageS_L; cube_L[1] = imageL_L; cube_L[2] = imageA_L; cube_L[3] = imageR_L; cube_L[4] = imageP_L; cube_L[5] = imageI_L;
+
+  unsigned char* stitchedImage_L = this->CubemapToEquirectangular(cube_L);
+  FILE *binFile = fopen("LeftPanorama","wb");
+  fwrite(stitchedImage_L, sizeof(unsigned char), 3*3840*1920, binFile);
+  fclose(binFile);
 
 
+  unsigned char* cube_R[6];
+  cube_R[0] = imageS_R; cube_R[1] = imageL_R; cube_R[2] = imageA_R; cube_R[3] = imageR_R; cube_R[4] = imageP_R; cube_R[5] = imageI_R;
+
+  unsigned char* stitchedImage_R = this->CubemapToEquirectangular(cube_R);
+  binFile = fopen("RightPanorama","wb");
+  fwrite(stitchedImage_R, sizeof(unsigned char), 3*3840*1920, binFile);
+  fclose(binFile);
 }
 
 //----------------------------------------------------------------------------
 unsigned char* vtkSlicerVirtualRealityViewerLogic::CubemapToEquirectangular(unsigned char* cube[])
 {
   //42 4D 4C 00 00 00 00 00 00 00 1A 00 00 00 0C 00 00 00 00 0F 80 07 01 00 18 00
-
 
   //960x960
   int i = 0;
@@ -143,9 +187,6 @@ unsigned char* vtkSlicerVirtualRealityViewerLogic::CubemapToEquirectangular(unsi
   
   unsigned int panoramaWidth  = cube2cylAlgo.pxPanoSizeH;
   unsigned int panoramaHeight = cube2cylAlgo.pxPanoSizeV;
-
-  cout<<panoramaHeight<<endl;
-  cout<<panoramaWidth<<endl;
 
   unsigned char* imagePanorama = new unsigned char [3*panoramaWidth*panoramaHeight];
 
@@ -162,18 +203,12 @@ unsigned char* vtkSlicerVirtualRealityViewerLogic::CubemapToEquirectangular(unsi
           unsigned char g = cube[coord->face][ ((unsigned long)coord->y * 960 * 3) + ((unsigned long)coord->x * 3) + 1 ];
           unsigned char b = cube[coord->face][ ((unsigned long)coord->y * 960 * 3) + ((unsigned long)coord->x * 3) + 2 ];
 
-          //cout << (unsigned long)coord->x << endl;
-
           // Write the pixel to the panorama
           imagePanorama[ (j * panoramaWidth * 3) + (i * 3)     ] = r;
           imagePanorama[ (j * panoramaWidth * 3) + (i * 3) + 1 ] = g;
           imagePanorama[ (j * panoramaWidth * 3) + (i * 3) + 2 ] = b;
       }
   }
-  
-  FILE *binFile = fopen("C:/W/Panorama","wb");
-  fwrite(imagePanorama, sizeof(unsigned char), 3*panoramaWidth*panoramaHeight, binFile);
-  fclose(binFile);
 
   return imagePanorama;
 }

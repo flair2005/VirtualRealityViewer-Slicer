@@ -28,6 +28,7 @@
 #include "qMRMLSliceWidget.h"
 #include <qSlicerApplication.h>
 #include <vtkRenderer.h>
+#include <vtkMRMLMarkupsFiducialNode.h>
 
 #include <QWidget>
 #include <QHBoxLayout>
@@ -48,7 +49,7 @@ public:
   vtkTypeMacro(vtkSlicerVirtualRealityViewerLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  void CreateImage(vtkRenderer*, vtkRenderWindow*);
+  void CreateImage(vtkRenderer*, vtkRenderWindow*, vtkMRMLMarkupsFiducialNode*);
   unsigned char* CubemapToEquirectangular(unsigned char* cube[]);
 
 protected:
