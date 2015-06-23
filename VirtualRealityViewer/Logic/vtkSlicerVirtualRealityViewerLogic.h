@@ -29,6 +29,7 @@
 #include <qSlicerApplication.h>
 #include <vtkRenderer.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
+#include <vtkMRMLCameraNode.h>
 
 #include <QWidget>
 #include <QHBoxLayout>
@@ -49,8 +50,11 @@ public:
   vtkTypeMacro(vtkSlicerVirtualRealityViewerLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  void CreateImage(vtkRenderer*, vtkRenderWindow*, vtkMRMLMarkupsFiducialNode*);
+  void CreateImage(vtkRenderWindow*, vtkMRMLMarkupsFiducialNode*, bool);
+  void CreateImage(vtkRenderWindow*, vtkMRMLCameraNode*, bool);
+  void GenerateMap(vtkRenderWindow*, double x, double y, double z, bool);
   unsigned char* CubemapToEquirectangular(unsigned char* cube[]);
+  void WriteImage(const char* fileName1, const char* fileName2, vtkRenderWindow* renderWindow);
 
 protected:
   vtkSlicerVirtualRealityViewerLogic();

@@ -38,6 +38,12 @@
 #include <vtkCamera.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
+#include <vtkRendererCollection.h>
+#include <vtkJPEGWriter.h>
+#include <vtkUnsignedCharArray.h>
+#include <vtkArrayData.h>
+#include <vtkImageCast.h>
+#include <vtkWindowToImageFilter.h>
 
 // CubeToCyl includes
 #include <Cube2Cyl.hpp>
@@ -61,16 +67,43 @@ vtkSlicerVirtualRealityViewerLogic::~vtkSlicerVirtualRealityViewerLogic()
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerVirtualRealityViewerLogic::CreateImage(vtkRenderer* renderer, vtkRenderWindow* renderWindow, vtkMRMLMarkupsFiducialNode* fiducialNode)
+void vtkSlicerVirtualRealityViewerLogic::CreateImage(vtkRenderWindow* renderWindow, vtkMRMLMarkupsFiducialNode* fiducialNode, bool equirectangular)
 {
-  vtkCamera* camera = renderer->GetActiveCamera();
-  
-  //fiducialNode->GetNumberOfFiducials();
+  int *size = renderWindow->GetSize();
+
   double xyzf[3];
   fiducialNode->GetNthFiducialPosition(0, xyzf);
 
-  camera->SetPosition(xyzf[0], xyzf[1], xyzf[2]);
-  camera->SetFocalPoint(xyzf[0], xyzf[1] + 0.1, xyzf[2]);
+  this->GenerateMap(renderWindow, xyzf[0], xyzf[1], xyzf[2], equirectangular);
+
+  //FILE *binFile = fopen("C:/Work/CubeMap.bmp","wb");
+  //fwrite(image, sizeof(unsigned char), size[0]*size[1]*3*12, binFile);
+  //fclose(binFile);
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerVirtualRealityViewerLogic::CreateImage(vtkRenderWindow* renderWindow, vtkMRMLCameraNode* cameraNode, bool equirectangular)
+{
+  int *size = renderWindow->GetSize();
+
+  double xyzf[3];
+  cameraNode->GetCamera()->GetPosition(xyzf);
+
+  this->GenerateMap(renderWindow, xyzf[0], xyzf[1], xyzf[2], equirectangular);
+
+  //FILE *binFile = fopen("C:/Work/CubeMap.bmp","wb");
+  //fwrite(image, sizeof(unsigned char), size[0]*size[1]*3*12, binFile);
+  //fclose(binFile);
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerVirtualRealityViewerLogic::GenerateMap(vtkRenderWindow* renderWindow, double x, double y, double z, bool equirectangular)
+{
+  vtkCamera* camera = renderWindow->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+  //vtkCamera* camera = renderer->GetActiveCamera();
+
+  camera->SetPosition(x, y, z);
+  camera->SetFocalPoint(x, y + 0.01, z);
   camera->SetViewUp(0, 0, 1);
   camera->UseHorizontalViewAngleOn();
   camera->SetViewAngle(90);
@@ -81,95 +114,66 @@ void vtkSlicerVirtualRealityViewerLogic::CreateImage(vtkRenderer* renderer, vtkR
   int *size = renderWindow->GetSize();
 
   // Front
-  renderWindow->SetStereoTypeToLeft();
-  renderWindow->Render();
-  unsigned char* imageA_L = new unsigned char [3*size[0]*size[1]];
-  imageA_L = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
-
-  renderWindow->SetStereoTypeToRight();
-  renderWindow->Render();
-  unsigned char* imageA_R = new unsigned char [3*size[0]*size[1]];
-  imageA_R = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+  this->WriteImage("C:/Work/lpx.jpg", "C:/Work/rpx.jpg", renderWindow);
 
   // Left
   camera->Yaw(90);
-  renderWindow->SetStereoTypeToLeft();
-  renderWindow->Render();
-  unsigned char* imageL_L = new unsigned char [3*size[0]*size[1]];
-  imageL_L = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
-
-  renderWindow->SetStereoTypeToRight();
-  renderWindow->Render();
-  unsigned char* imageL_R = new unsigned char [3*size[0]*size[1]];
-  imageL_R = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+  this->WriteImage("C:/Work/lpz.jpg", "C:/Work/rpz.jpg", renderWindow);
 
   // Back
   camera->Yaw(90);
-  renderWindow->SetStereoTypeToLeft();
-  renderWindow->Render();
-  unsigned char* imageP_L = new unsigned char [3*size[0]*size[1]];
-  imageP_L = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
-
-  renderWindow->SetStereoTypeToRight();
-  renderWindow->Render();
-  unsigned char* imageP_R = new unsigned char [3*size[0]*size[1]];
-  imageP_R = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+  this->WriteImage("C:/Work/lnx.jpg", "C:/Work/rnx.jpg", renderWindow);
 
   // Right
   camera->Yaw(90);
-  renderWindow->SetStereoTypeToLeft();
-  renderWindow->Render();
-  unsigned char* imageR_L = new unsigned char [3*size[0]*size[1]];
-  imageR_L = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
-
-  renderWindow->SetStereoTypeToRight();
-  renderWindow->Render();
-  unsigned char* imageR_R = new unsigned char [3*size[0]*size[1]];
-  imageR_R = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+  this->WriteImage("C:/Work/lnz.jpg", "C:/Work/rnz.jpg", renderWindow);
 
   // Top
   camera->Yaw(90);
   camera->SetViewUp(1,0,0);
   camera->Yaw(90);
-  renderWindow->SetStereoTypeToLeft();
-  renderWindow->Render();
-  unsigned char* imageS_L = new unsigned char [3*size[0]*size[1]];
-  imageS_L = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
-
-  renderWindow->SetStereoTypeToRight();
-  renderWindow->Render();
-  unsigned char* imageS_R = new unsigned char [3*size[0]*size[1]];
-  imageS_R = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+  this->WriteImage("C:/Work/lpy.jpg", "C:/Work/rpy.jpg", renderWindow);
 
   // Bottom
   camera->Yaw(180);
+  camera->Roll(180);
+  this->WriteImage("C:/Work/lny.jpg", "C:/Work/rny.jpg", renderWindow);
+//*/
+  return;
+
+  //42 4D 4C 00 00 00 00 00 00 00 1A 00 00 00 0C 00 00 00 00 0F 80 07 01 00 18 00
+  //42 4D 4C 00 00 00 00 00 00 00 1A 00 00 00 0C 00 00 00 C0 03 C0 03 01 00 18 00
+  //42 4D 4C 00 00 00 00 00 00 00 1A 00 00 00 0C 00 00 00 40 0B 80 07 01 00 18 00
+  //42 4D 4C 00 00 00 00 00 00 00 1A 00 00 00 0C 00 00 00 80 16 80 07 01 00 18 00
+}
+
+void vtkSlicerVirtualRealityViewerLogic::WriteImage(const char* fileName1, const char* fileName2, vtkRenderWindow* renderWindow){
+  vtkSmartPointer<vtkWindowToImageFilter> windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
+  windowToImage->SetMagnification(1);
+  windowToImage->SetInput(renderWindow);
+  windowToImage->SetInputBufferTypeToRGB();
+
+  vtkSmartPointer<vtkJPEGWriter> jpegWriter = vtkSmartPointer<vtkJPEGWriter>::New();
+  jpegWriter->SetQuality(100);
+  jpegWriter->Update();
+
   renderWindow->SetStereoTypeToLeft();
   renderWindow->Render();
-  unsigned char* imageI_L = new unsigned char [3*size[0]*size[1]];
-  imageI_L = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
+  windowToImage->SetInput(renderWindow);
+  windowToImage->Update();
+  jpegWriter->SetFileName(fileName1);
+  jpegWriter->SetInputData(windowToImage->GetOutput());
+  jpegWriter->Update();
+  jpegWriter->Write();
 
   renderWindow->SetStereoTypeToRight();
   renderWindow->Render();
-  unsigned char* imageI_R = new unsigned char [3*size[0]*size[1]];
-  imageI_R = renderWindow->GetPixelData(0, 0, size[0]-1, size[1]-1, 1);
-  
-
-  unsigned char* cube_L[6];
-  cube_L[0] = imageS_L; cube_L[1] = imageL_L; cube_L[2] = imageA_L; cube_L[3] = imageR_L; cube_L[4] = imageP_L; cube_L[5] = imageI_L;
-
-  unsigned char* stitchedImage_L = this->CubemapToEquirectangular(cube_L);
-  FILE *binFile = fopen("LeftPanorama","wb");
-  fwrite(stitchedImage_L, sizeof(unsigned char), 3*3840*1920, binFile);
-  fclose(binFile);
-
-
-  unsigned char* cube_R[6];
-  cube_R[0] = imageS_R; cube_R[1] = imageL_R; cube_R[2] = imageA_R; cube_R[3] = imageR_R; cube_R[4] = imageP_R; cube_R[5] = imageI_R;
-
-  unsigned char* stitchedImage_R = this->CubemapToEquirectangular(cube_R);
-  binFile = fopen("RightPanorama","wb");
-  fwrite(stitchedImage_R, sizeof(unsigned char), 3*3840*1920, binFile);
-  fclose(binFile);
+  windowToImage->SetInput(renderWindow);
+  windowToImage->Update();
+  jpegWriter->SetFileName(fileName2);
+  jpegWriter->SetInputData(windowToImage->GetOutput());
+  jpegWriter->Update();
+  jpegWriter->Write();
 }
 
 //----------------------------------------------------------------------------
@@ -209,7 +213,6 @@ unsigned char* vtkSlicerVirtualRealityViewerLogic::CubemapToEquirectangular(unsi
           imagePanorama[ (j * panoramaWidth * 3) + (i * 3) + 2 ] = b;
       }
   }
-
   return imagePanorama;
 }
 

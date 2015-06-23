@@ -33,7 +33,6 @@ class Q_SLICER_QTMODULES_VIRTUALREALITYVIEWER_EXPORT qSlicerVirtualRealityViewer
   Q_INTERFACES(qSlicerLoadableModule);
 
 public:
-
   typedef qSlicerLoadableModule Superclass;
   explicit qSlicerVirtualRealityViewerModule(QObject *parent=0);
   virtual ~qSlicerVirtualRealityViewerModule();
