@@ -58,6 +58,7 @@ protected:
   
 protected slots:
   void onStart();
+  void onTimerUpdate();
 
 
 private:

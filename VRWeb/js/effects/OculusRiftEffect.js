@@ -14,8 +14,8 @@ THREE.OculusRiftEffect = function ( renderer ) {
 	this.aspectFactor = 1;
 	this.fov = 110;
 
-	var displayWidth = 1280;
-	var displayHeight = 800;
+	var displayWidth = 1920;
+	var displayHeight = 1080;
 
 	// initialization
 	var _width = displayWidth / 2;
@@ -83,8 +83,7 @@ THREE.OculusRiftEffect = function ( renderer ) {
 	var mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), _material );
 	_scene.add( mesh );
 
-	this.render = function ( scene, camera ) {
-		renderer.clear();
+	this.render = function ( scene, camera, side ) {
 		_material.uniforms['c'].value = this.distortion;
 
 		// camera parameters
@@ -95,30 +94,34 @@ THREE.OculusRiftEffect = function ( renderer ) {
 		_pCamera.far = camera.far;
 		_pCamera.updateProjectionMatrix();
 
-		// Render left
-		this.preLeftRender();
+    if (side == "left"){
+      renderer.clear();
+      // Render left
+      this.preLeftRender();
 
-		var offset = new THREE.Vector3(-this.separation,0,0);
-		_pCamera.matrix.copy(camera.matrixWorld);
-		_pCamera.matrix.translate(offset);
-		_pCamera.matrixWorldNeedsUpdate = true;
+      var offset = new THREE.Vector3(-this.separation,0,0);
+      _pCamera.matrix.copy(camera.matrixWorld);
+      _pCamera.matrix.translate(offset);
+      _pCamera.matrixWorldNeedsUpdate = true;
 
-		renderer.setViewport( 0, 0, _width, _height );
-		renderer.render( scene, _pCamera, _renderTarget, true );
-		renderer.render( _scene, _oCamera );
+      renderer.setViewport( 0, 0, _width, _height );
+      renderer.render( scene, _pCamera, _renderTarget, true );
+      renderer.render( _scene, _oCamera );
+    }
+    else{
+      // Render right
+      this.preRightRender();
 
-		// Render right
-		this.preRightRender();
+      var offset = new THREE.Vector3(this.separation,0,0);
+      _pCamera.matrix.copy(camera.matrixWorld);
+      _pCamera.matrix.translate(offset);
+      _pCamera.matrixWorldNeedsUpdate = true;
 
-		offset.set(this.separation,0,0);
-		_pCamera.matrix.copy(camera.matrixWorld);
-		_pCamera.matrix.translate(offset);
-		_pCamera.matrixWorldNeedsUpdate = true;
+      renderer.setViewport( _width, 0, _width, _height );
+      renderer.render( scene, _pCamera, _renderTarget, true );
 
-		renderer.setViewport( _width, 0, _width, _height );
-		renderer.render( scene, _pCamera, _renderTarget, true );
-
-		renderer.render( _scene, _oCamera );
+      renderer.render( _scene, _oCamera );
+    }
 	};
 
 };

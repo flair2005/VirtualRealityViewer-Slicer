@@ -114,30 +114,30 @@ void vtkSlicerVirtualRealityViewerLogic::GenerateMap(vtkRenderWindow* renderWind
   int *size = renderWindow->GetSize();
 
   // Front
-  this->WriteImage("C:/Work/lpx.jpg", "C:/Work/rpx.jpg", renderWindow);
+  this->WriteImage("C:/Work/s/VRWeb/textures/cube/skybox/lpx.jpg", "C:/Work/s/VRWeb/textures/cube/skybox/rpx.jpg", renderWindow);
 
   // Left
   camera->Yaw(90);
-  this->WriteImage("C:/Work/lpz.jpg", "C:/Work/rpz.jpg", renderWindow);
+  this->WriteImage("C:/Work/s/VRWeb/textures/cube/skybox/lpz.jpg", "C:/Work/s/VRWeb/textures/cube/skybox/rpz.jpg", renderWindow);
 
   // Back
   camera->Yaw(90);
-  this->WriteImage("C:/Work/lnx.jpg", "C:/Work/rnx.jpg", renderWindow);
+  this->WriteImage("C:/Work/s/VRWeb/textures/cube/skybox/lnx.jpg", "C:/Work/s/VRWeb/textures/cube/skybox/rnx.jpg", renderWindow);
 
   // Right
   camera->Yaw(90);
-  this->WriteImage("C:/Work/lnz.jpg", "C:/Work/rnz.jpg", renderWindow);
+  this->WriteImage("C:/Work/s/VRWeb/textures/cube/skybox/lnz.jpg", "C:/Work/s/VRWeb/textures/cube/skybox/rnz.jpg", renderWindow);
 
   // Top
   camera->Yaw(90);
   camera->SetViewUp(1,0,0);
   camera->Yaw(90);
-  this->WriteImage("C:/Work/lpy.jpg", "C:/Work/rpy.jpg", renderWindow);
+  this->WriteImage("C:/Work/s/VRWeb/textures/cube/skybox/lpy.jpg", "C:/Work/s/VRWeb/textures/cube/skybox/rpy.jpg", renderWindow);
 
   // Bottom
   camera->Yaw(180);
   camera->Roll(180);
-  this->WriteImage("C:/Work/lny.jpg", "C:/Work/rny.jpg", renderWindow);
+  this->WriteImage("C:/Work/s/VRWeb/textures/cube/skybox/lny.jpg", "C:/Work/s/VRWeb/textures/cube/skybox/rny.jpg", renderWindow);
 //*/
   return;
 

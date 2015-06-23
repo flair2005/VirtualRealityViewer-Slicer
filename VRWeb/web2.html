@@ -47,8 +47,16 @@
 			var camera, scene, renderer;
 			var geometry, material, mesh;
 			var controls, time = Date.now();
+      var downloadLimitTime;
 
 			var effect; // rift effect
+      
+      var material_L;
+      var material_R;
+      var urls_L, urls_R;
+      var textureCube_L, textureCube_R;
+      var shader_L, shader_R;
+      
 
 			var objects = [];
 
@@ -138,6 +146,8 @@
 				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
 
 				scene = new THREE.Scene();
+        
+        downloadLimitTime = 60;
 
 
 				controls = new THREE.OculusRiftControls( camera );
@@ -149,52 +159,89 @@
 				ray = new THREE.Raycaster();
 				ray.ray.direction.set( 0, -1, 0 );         
 
-				// floor
+				// Cubemap
         var path = "textures/cube/skybox/";
 				var format = '.jpg';
-				var urls_L = [
+				urls_L = [
 					path + 'lpx' + format, path + 'lnx' + format,
 					path + 'lpy' + format, path + 'lny' + format,
 					path + 'lpz' + format, path + 'lnz' + format
 				];
         
-				var urls_R = [
+				urls_R = [
 					path + 'rpx' + format, path + 'rnx' + format,
 					path + 'rpy' + format, path + 'rny' + format,
 					path + 'rpz' + format, path + 'rnz' + format
 				];        
 
-				var textureCube_L = THREE.ImageUtils.loadTextureCube( urls_L, new THREE.CubeRefractionMapping() );
-        var textureCube_R = THREE.ImageUtils.loadTextureCube( urls_R, new THREE.CubeRefractionMapping() );
+				textureCube_L = THREE.ImageUtils.loadTextureCube( urls_L, new THREE.CubeRefractionMapping() );
+        textureCube_R = THREE.ImageUtils.loadTextureCube( urls_R, new THREE.CubeRefractionMapping() ); 
+        
+        //material_L = new THREE.MeshBasicMaterial({color: 'green'});
+        //material_L.map = textureCube_L;
+        
+        textureCube_L.needsUpdate = true;
+        textureCube_R.needsUpdate = true;
 
-				var shader_L = THREE.ShaderLib[ "cube" ];
-        shader_L.uniforms[ "tCube" ].value = textureCube_L; 
-        //var uniforms_L = { texture1: { type: "tCube", value: textureCube_L }};
-
-				var shader_R = THREE.ShaderLib[ "cube" ];
-        shader_R.uniforms[ "tCube" ].value = textureCube_R;
-        //var uniforms_R = { texture1: { type: "tCube", value: textureCube_R }};
-				    
-				var material_L = new THREE.ShaderMaterial( {
-					fragmentShader: shader_L.fragmentShader,
-					vertexShader: shader_L.vertexShader,
-					uniforms: shader_L.uniforms,
+        /*
+        uniforms_L = {
+            color: { type: "c", value: new THREE.Color( 0x00ffff ) },
+            texture: { type: "tCube", value: textureCube_L },
+        },
+        uniforms_R = {
+            color: { type: "c", value: new THREE.Color( 0xff00ff ) },
+            texture: { type: "tCube", value: textureCube_R },
+        },        
+        vertexShader_L = "varying vec2 vUv; void main() {vUv = uv;gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );}",
+        vertexShader_R = "varying vec2 vUv; void main() {vUv = uv;gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );}",
+        fragmentShader_L = "uniform vec3 color; uniform sampler2D texture; varying vec2 vUv; void main() { vec4 tColor = texture2D( texture, vUv ); gl_FragColor = vec4( mix( color, tColor.rgb, tColor.a ), 1.0 );}",
+        fragmentShader_R = "uniform vec3 color; uniform sampler2D texture; varying vec2 vUv; void main() { vec4 tColor = texture2D( texture, vUv ); gl_FragColor = vec4( mix( color, tColor.rgb, tColor.a ), 1.0 );}",
+        
+				material_L = new THREE.ShaderMaterial( {
+          uniforms: uniforms_L,
+					fragmentShader: fragmentShader_L,
+					vertexShader: vertexShader_L,
 					side: THREE.BackSide
 				} ),
-        mesh_L = new THREE.Mesh( new THREE.CubeGeometry( 5000, 5000, 5000 ), material_L );
+				material_R = new THREE.ShaderMaterial( {
+          uniforms: uniforms_R,
+					fragmentShader: fragmentShader_R,
+					vertexShader: vertexShader_R,
+					side: THREE.BackSide
+				} ),             
+        */
         
-				var material_R = new THREE.ShaderMaterial( {
+        //*
+
+        shader_L = THREE.ShaderLib["cube"];
+        uniforms_L = THREE.UniformsUtils.clone(shader_L.uniforms);
+        uniforms_L["tCube"].value = textureCube_L;
+        
+        shader_R = THREE.ShaderLib["cube"];
+        uniforms_R = THREE.UniformsUtils.clone(shader_R.uniforms);
+        uniforms_R["tCube"].value = textureCube_R;               
+				    
+				material_L = new THREE.ShaderMaterial( {
+					fragmentShader: shader_L.fragmentShader,
+					vertexShader: shader_L.vertexShader,
+					uniforms: uniforms_L,
+          attributes: {vertexOpacity: { type: 'f', value: [] }},
+					side: THREE.BackSide
+				} ),
+				material_R = new THREE.ShaderMaterial( {
 					fragmentShader: shader_R.fragmentShader,
 					vertexShader: shader_R.vertexShader,
-					uniforms: shader_R.uniforms,
-					side: THREE.BackSide
-				} ),        
-        mesh_R = new THREE.Mesh( new THREE.CubeGeometry( 5000, 5000, 5000 ), material_R );
-
-        scene.add( mesh_L );
-        //scene.add( mesh_R );
-
-
+					uniforms: uniforms_R,
+          attributes: {vertexOpacity: { type: 'f', value: [] }},
+					side: THREE.BackSide       
+				} ),     
+        //*/
+        
+        mesh = new THREE.Mesh( new THREE.CubeGeometry( 5000, 5000, 5000 ), material_L );
+        mesh.dynamic = true;
+        //mesh = new THREE.Mesh(meshGeo, new THREE.MeshFaceMaterial(material_L));
+        
+        scene.add( mesh );
 
 				renderer = new THREE.WebGLRenderer({
 					devicePixelRatio: 1,
@@ -218,6 +265,91 @@
 				document.addEventListener( 'keydown', keyPressed, false );
 			}
 
+      function downloadTextures() {       
+
+        textureCube_L = THREE.ImageUtils.loadTextureCube( urls_L, new THREE.CubeRefractionMapping() ); 
+        textureCube_R = THREE.ImageUtils.loadTextureCube( urls_R, new THREE.CubeRefractionMapping() );
+
+        textureCube_L.needsUpdate = true;
+        textureCube_R.needsUpdate = true;        
+        
+        //shader_L.uniforms[ "tCube" ].value = textureCube_L;
+        //shader_R.uniforms[ "tCube" ].value = textureCube_R;
+        
+        shader_L = THREE.ShaderLib["cube"];
+        uniforms_L = THREE.UniformsUtils.clone(shader_L.uniforms);
+        uniforms_L["tCube"].value = textureCube_L;
+        
+        shader_R = THREE.ShaderLib["cube"];
+        uniforms_R = THREE.UniformsUtils.clone(shader_R.uniforms);
+        uniforms_R["tCube"].value = textureCube_R;               
+				    
+        material_L.uniforms = uniforms_R;
+        material_R.uniforms - uniforms_L;
+        
+        /*
+				material_L = new THREE.ShaderMaterial( {
+					fragmentShader: shader_L.fragmentShader,
+					vertexShader: shader_L.vertexShader,
+					uniforms: uniforms_L,
+          attributes: {vertexOpacity: { type: 'f', value: [] }},
+					side: THREE.BackSide
+				} ),
+				material_R = new THREE.ShaderMaterial( {
+					fragmentShader: shader_R.fragmentShader,
+					vertexShader: shader_R.vertexShader,
+					uniforms: uniforms_R,
+          attributes: {vertexOpacity: { type: 'f', value: [] }},
+					side: THREE.BackSide       
+				} ),       
+               
+        //*/
+        material_L.needsUpdate = true;
+        material_R.needsUpdate = true;
+        mesh.needsUpdate = true;
+        
+        
+        //mesh = new THREE.Mesh( new THREE.CubeGeometry( 5000, 5000, 5000 ), material_L );
+        
+        
+        
+        /*
+        uniforms_L = {
+            color: { type: "c", value: new THREE.Color( 0x00ffff ) },
+            texture: { type: "tCube", value: textureCube_L },
+        },
+        uniforms_R = {
+            color: { type: "c", value: new THREE.Color( 0xff00ff ) },
+            texture: { type: "tCube", value: textureCube_R },
+        },
+        */
+        //material_L.texture.value = textureCube_L;
+        //material_R.texture.value = textureCube_R;
+        //mesh.material.uniforms.texture.value = textureCube_L;
+        //shader_L.uniforms[ "tCube" ].needsUpdate = true;
+        
+        console.log("blarg");
+        
+        /*
+				material_L = new THREE.ShaderMaterial( {
+					fragmentShader: shader_L.fragmentShader,
+					vertexShader: shader_L.vertexShader,
+					uniforms: shader_L.uniforms,
+					side: THREE.BackSide
+				} ),
+				material_R = new THREE.ShaderMaterial( {
+					fragmentShader: shader_R.fragmentShader,
+					vertexShader: shader_R.vertexShader,
+					uniforms: shader_R.uniforms,
+					side: THREE.BackSide
+				} ),   
+        //*/
+        //*
+
+        //*/
+        
+      }
+      
 			function onWindowResize() {
 			}
 
@@ -268,8 +400,16 @@
                 }
 				controls.update( Date.now() - time, vr.isReady ? vrstate : null );
 
-				effect.render( scene, camera );
-
+        mesh.material = material_L;
+				effect.render( scene, camera, "left" );
+        mesh.material = material_R;
+        effect.render( scene, camera, "right" );
+     
+        downloadLimitTime++;
+        if (downloadLimitTime >= 60){
+          downloadTextures();
+          downloadLimitTime=0;
+        }
 				time = Date.now();
 			}
 
