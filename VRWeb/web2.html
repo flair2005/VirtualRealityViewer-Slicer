@@ -57,6 +57,9 @@
       var textureCube_L, textureCube_R;
       var shader_L, shader_R;
       
+      
+      var mouseX = 0, mouseY = 0;
+      
 
 			var objects = [];
 
@@ -138,9 +141,21 @@
 
 			}
 
+      //document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+      
 			init();
 			animate();
 
+      /*
+			function onDocumentMouseMove( event ) {
+
+				mouseX = ( event.clientX - window.innerWidth/2 ) * 10;
+				mouseY = ( event.clientY - window.innerHeight/2 ) * 10;
+
+			}
+      */
+      
+      
 			function init() {
 
 				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
@@ -242,6 +257,7 @@
         //mesh = new THREE.Mesh(meshGeo, new THREE.MeshFaceMaterial(material_L));
         
         scene.add( mesh );
+        
 
 				renderer = new THREE.WebGLRenderer({
 					devicePixelRatio: 1,
@@ -297,7 +313,7 @@
 				} ),
 				material_R = new THREE.ShaderMaterial( {
 					fragmentShader: shader_R.fragmentShader,
-					vertexShader: shader_R.vertexShader,
+					vertexShader: shader_R.vertexShader,`
 					uniforms: uniforms_R,
           attributes: {vertexOpacity: { type: 'f', value: [] }},
 					side: THREE.BackSide       
@@ -385,6 +401,13 @@
 					}
 				}
 
+        /*
+        camera.position.x += ( mouseX - camera.position.x ) * .005;
+				camera.position.y += ( - mouseY - camera.position.y ) * .005;
+				camera.lookAt( scene.position );
+        //*/
+        
+        //*
 				// Poll VR, if it's ready.
                 if (vr.isReady) {
                     vr.poll(vrstate);
@@ -399,7 +422,8 @@
                     camera.rotation.x = vrstate.oculus.rotation[0] * Math.PI;                                                           
                 }
 				controls.update( Date.now() - time, vr.isReady ? vrstate : null );
-
+        //*/
+        
         mesh.material = material_L;
 				effect.render( scene, camera, "left" );
         mesh.material = material_R;

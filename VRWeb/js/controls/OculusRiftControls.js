@@ -1,4 +1,18 @@
 /**
+ * Copyright 2013 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  * Based on THREE.PointerLockControls by mrdoob.
  * @author benvanik
  */
@@ -7,12 +21,9 @@ THREE.OculusRiftControls = function ( camera ) {
 
 	var scope = this;
 
-	var pitchObject = new THREE.Object3D();
-	pitchObject.add( camera );
-
-	var yawObject = new THREE.Object3D();
-	yawObject.position.y = 10;
-	yawObject.add( pitchObject );
+	var moveObject = new THREE.Object3D();
+	moveObject.position.y = 10;
+	moveObject.add( camera );
 
 	var moveForward = false;
 	var moveBackward = false;
@@ -26,8 +37,12 @@ THREE.OculusRiftControls = function ( camera ) {
 
 	var PI_2 = Math.PI / 2;
 
-	this.moveSpeed = 0.12 / 2;
-	this.jumpSpeed = 3;
+	this.moveSpeed = 1.2 / 4;
+	this.jumpSpeed = 2;
+
+	var _q1 = new THREE.Quaternion();
+	var axisX = new THREE.Vector3( 1, 0, 0 );
+	var axisZ = new THREE.Vector3( 0, 0, 1 );
 
 	var onMouseMove = function ( event ) {
 
@@ -36,11 +51,12 @@ THREE.OculusRiftControls = function ( camera ) {
 		var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
 		var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
-		yawObject.rotation.y -= movementX * 0.002;
-		pitchObject.rotation.x -= movementY * 0.002;
+		console.log(movementX, movementY);
 
-		pitchObject.rotation.x = Math.max( - PI_2, Math.min( PI_2, pitchObject.rotation.x ) );
-
+		_q1.setFromAxisAngle( axisZ, movementX * 0.002 );
+		moveObject.quaternion.multiplySelf( _q1 );
+		_q1.setFromAxisAngle( axisX, movementY * 0.002 );
+		moveObject.quaternion.multiplySelf( _q1 );
 	};
 
 	var onKeyDown = function ( event ) {
@@ -111,7 +127,7 @@ THREE.OculusRiftControls = function ( camera ) {
 
 	this.getObject = function () {
 
-		return yawObject;
+		return moveObject;
 
 	};
 
@@ -125,8 +141,6 @@ THREE.OculusRiftControls = function ( camera ) {
 	this.update = function ( delta, vrstate ) {
 
 		//if ( scope.enabled === false ) return;
-
-		// TODO: use vrstate to compute look
 
 		delta *= 0.1;
 
@@ -147,14 +161,30 @@ THREE.OculusRiftControls = function ( camera ) {
 
 		}
 
-		yawObject.translateX( velocity.x );
-		yawObject.translateY( velocity.y );
-		yawObject.translateZ( velocity.z );
+		var rotation = new THREE.Quaternion();
+		var angles = new THREE.Vector3();
+		if (vrstate) {
+			rotation.set(
+					vrstate.hmd.rotation[0],
+					vrstate.hmd.rotation[1],
+					vrstate.hmd.rotation[2],
+					vrstate.hmd.rotation[3]);
+			angles.setEulerFromQuaternion(rotation, 'XYZ');
+			angles.z = 0;
+			angles.normalize();
+			rotation.setFromEuler(angles, 'XYZ');
+			rotation.normalize();
+			// velocity.applyQuaternion(rotation);
+		}
 
-		if ( yawObject.position.y < 10 ) {
+		moveObject.translateX( velocity.x );
+		moveObject.translateY( velocity.y );
+		moveObject.translateZ( velocity.z );
+
+		if ( moveObject.position.y < 10 ) {
 
 			velocity.y = 0;
-			yawObject.position.y = 10;
+			moveObject.position.y = 10;
 
 			canJump = true;
 
